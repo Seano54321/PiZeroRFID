@@ -23,6 +23,7 @@
 
 import RPi.GPIO as GPIO
 import MFRC522
+import paho.mqtt.publish as pub
 import signal
 
 continue_reading = True
@@ -30,9 +31,14 @@ continue_reading = True
 # Capture SIGINT for cleanup when the script is aborted
 def end_read(signal,frame):
     global continue_reading
-    print "Ctrl+C captured, ending read."
+    print "Ctrl+C captured, ending RFID read."
     continue_reading = False
     GPIO.cleanup()
+
+# Set up MQTT client
+# client = mqtt.Client('RFID')
+# client.connect('192.168.4.1')
+pub.single('sensors/RFID/raw','RFID Connected',hostname='192.168.4.1')
 
 # Hook the SIGINT
 signal.signal(signal.SIGINT, end_read)
@@ -41,8 +47,8 @@ signal.signal(signal.SIGINT, end_read)
 MIFAREReader = MFRC522.MFRC522()
 
 # Welcome message
-print "Welcome to the MFRC522 data read example"
-print "Press Ctrl-C to stop."
+# print "Welcome to the MFRC522 data read example"
+# print "Press Ctrl-C to stop."
 
 # This loop keeps checking for chips. If one is near it will get the UID and authenticate
 while continue_reading:
@@ -62,7 +68,10 @@ while continue_reading:
 
         # Print UID
         print "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3])
-    
+
+        # Publish UID to MQTT broker
+        pub.single('sensors/RFID/raw', '%s,%s,%s,%s' % (uid[0], uid[1], uid[2], uid[3]), hostname='192.168.4.1')
+
         # This is the default key for authentication
         key = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
         
