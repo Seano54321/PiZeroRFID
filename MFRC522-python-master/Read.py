@@ -35,9 +35,7 @@ def end_read(signal,frame):
     continue_reading = False
     GPIO.cleanup()
 
-# Set up MQTT client
-# client = mqtt.Client('RFID')
-# client.connect('192.168.4.1')
+# Publish connection signal to MQTT broker
 pub.single('sensors/RFID/raw','RFID Connected',hostname='192.168.4.1')
 
 # Hook the SIGINT
@@ -45,10 +43,6 @@ signal.signal(signal.SIGINT, end_read)
 
 # Create an object of the class MFRC522
 MIFAREReader = MFRC522.MFRC522()
-
-# Welcome message
-# print "Welcome to the MFRC522 data read example"
-# print "Press Ctrl-C to stop."
 
 # This loop keeps checking for chips. If one is near it will get the UID and authenticate
 while continue_reading:
